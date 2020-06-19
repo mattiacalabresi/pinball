@@ -1,7 +1,8 @@
-# Blender v2.82 (sub 7) OBJ File: 'bumper1.blend'
+var bumper2Str = `
+# Blender v2.82 (sub 7) OBJ File: 'bumper2.blend'
 # www.blender.org
-mtllib bumper1.mtl
-o Score1_Cylinder.005
+mtllib bumper2.mtl
+o Score2_Cylinder.006
 v -0.000000 -0.144721 -0.260357
 v 0.000000 -0.115777 -0.289442
 v -0.000000 -0.140843 -0.274900
@@ -3790,3 +3791,4 @@ f 57/379/16 89/409/23 121/439/32
 f 121/439/32 153/468/39 185/504/47
 f 185/504/47 217/527/55 249/562/67
 f 249/562/67 57/379/16 121/439/32
+`;

@@ -89,24 +89,47 @@ function main() {
   
   var vao = gl.createVertexArray();
 
-  var mesh = new OBJ.Mesh(bumperStr);
+  var ballMesh = new OBJ.Mesh(ballStr);
+  var bodyMesh = new OBJ.Mesh(bodyStr);
+  var bumper1Mesh = new OBJ.Mesh(bumper1Str);
+  var bumper2Mesh = new OBJ.Mesh(bumper2Str);
+  var bumper3Mesh = new OBJ.Mesh(bumper3Str);
+  var dl1Mesh = new OBJ.Mesh(dl1Str);
+  var dl2Mesh = new OBJ.Mesh(dl2Str);
+  var dl3Mesh = new OBJ.Mesh(dl3Str);
+  var dl4Mesh = new OBJ.Mesh(dl4Str);
+  var dl5Mesh = new OBJ.Mesh(dl5Str);
+  var dl6Mesh = new OBJ.Mesh(dl6Str);
+  var dr1Mesh = new OBJ.Mesh(dr1Str);
+  var dr2Mesh = new OBJ.Mesh(dr2Str);
+  var dr3Mesh = new OBJ.Mesh(dr3Str);
+  var dr4Mesh = new OBJ.Mesh(dr4Str);
+  var dr5Mesh = new OBJ.Mesh(dr5Str);
+  var dr6Mesh = new OBJ.Mesh(dr6Str);
+  var leftButtonMesh = new OBJ.Mesh(leftButtonStr);
+  var leftFlipperMesh = new OBJ.Mesh(leftFlipperStr);
+  var pullerMesh = new OBJ.Mesh(pullerStr);
+  var rightButtonMesh = new OBJ.Mesh(rightButtonStr);
+  var rightFlipperMesh = new OBJ.Mesh(rightFlipperStr);
+  
+  var currentMesh = bumper1Mesh;
   
   gl.bindVertexArray(vao);
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(currentMesh.vertices), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
   var normalBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexNormals), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(currentMesh.vertexNormals), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(normalAttributeLocation);
   gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
   var indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.STATIC_DRAW); 
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(currentMesh.indices), gl.STATIC_DRAW); 
 
   drawScene();
 
@@ -133,7 +156,7 @@ function main() {
       gl.uniform3fv(lightDirectionHandle,  lightDirectionTransformed);
 
       gl.bindVertexArray(vao);
-      gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0 );
+      gl.drawElements(gl.TRIANGLES, currentMesh.indices.length, gl.UNSIGNED_SHORT, 0 );
     }
     
     window.requestAnimationFrame(drawScene);
