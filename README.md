@@ -1,4 +1,4 @@
-# pinball
+# Pinball
 Computer Graphics Project
 
 
