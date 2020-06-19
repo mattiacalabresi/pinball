@@ -1,4 +1,3 @@
-var leftButtonStr = `
 # Blender v2.82 (sub 7) OBJ File: 'LeftButton.blend'
 # www.blender.org
 mtllib LeftButton.mtl
@@ -1087,4 +1086,3 @@ f 25/88/73 41/107/86 57/125/97
 f 89/152/113 105/182/132 57/125/97
 f 105/182/132 121/191/137 57/125/97
 f 121/191/137 153/238/168 57/125/97
-`;

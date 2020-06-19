@@ -1,9 +1,15 @@
 //Utils ver. 0.4
-//Includes minimal mat3 support
-//Includes texture operations
-//Includes initInteraction() function
 
 var utils = {
+
+	createAndCompileShaders: function (gl, shaderText) {
+		var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+		var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+
+		var program = utils.createProgram(gl, vertexShader, fragmentShader);
+
+		return program;
+	},
 
 	createShader: function (gl, type, source) {
 		var shader = gl.createShader(type);
@@ -14,6 +20,12 @@ var utils = {
 			return shader;
 		} else {
 			console.log(gl.getShaderInfoLog(shader));  // eslint-disable-line
+			if (type == gl.VERTEX_SHADER) {
+				alert("ERROR IN VERTEX SHADER : " + gl.getShaderInfoLog(vertexShader));
+			}
+			if (type == gl.FRAGMENT_SHADER) {
+				alert("ERROR IN FRAGMENT SHADER : " + gl.getShaderInfoLog(vertexShader));
+			}
 			gl.deleteShader(shader);
 			throw "could not compile shader:" + gl.getShaderInfoLog(shader);
 		}
@@ -29,7 +41,7 @@ var utils = {
 		if (success) {
 			return program;
 		} else {
-			console.log("program filed to link:" + gl.getProgramInfoLog(program));	 // eslint-disable-line
+			console.log("program filed to link:" + gl.getProgramInfoLog(program));  // eslint-disable-line
 			gl.deleteProgram(program);
 			return undefined;
 		}
@@ -39,31 +51,38 @@ var utils = {
 		const expandFullScreen = () => {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
-			// console.log(canvas.width + " " + window.innerWidth);
+			//console.log(canvas.width + " " + window.innerWidth);
 
 		};
 		expandFullScreen();
 		// Resize screen when the browser has triggered the resize event
 		window.addEventListener('resize', expandFullScreen);
 	},
-	
-	//**** MODEL UTILS
-	
+
+	// **** MODEL UTILS ****
+
 	// Function to load a 3D model in JSON format
-	get_json: function (url, func) {
-		var xmlHttp = new XMLHttpRequest();
-		xmlHttp.open("GET", url, false); // if true == asynchronous...
-		xmlHttp.onreadystatechange = function () {
-			if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-				//the file is loaded. Parse it as JSON and launch function
-				func(JSON.parse(xmlHttp.responseText));
-			}
-		};
-		//send the request
-		xmlHttp.send();
+	get_json: async function (url, func) {
+		var response = await fetch(url);
+		if (!response.ok) {
+			alert('Network response was not ok');
+			return;
+		}
+		var json = await response.json();
+		func(json);
 	},
 
-	//function to convert decimal value of colors 
+	get_objstr: async function (url) {
+		var response = await fetch(url);
+		if (!response.ok) {
+			alert('Network response was not ok');
+			return;
+		}
+		var text = await response.text();
+		return text;
+	},
+
+	// Function to convert decimal value of colors 
 	decimalToHex: function (d, padding) {
 		var hex = Number(d).toString(16);
 		padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
@@ -75,35 +94,51 @@ var utils = {
 		return hex;
 	},
 
-	//*** SHADERS UTILS	
-	
+	// **** SHADERS UTILS ****
+
+	/*fetch('http://foo.com/static/bar.glsl') .then(response => {
+		if (!response.ok) {
+		alert('Network response was not ok');
+		}
+		return response.text();
+  	}).then(data => console.log(data));*/
+
 	/*
 		Function to load a shader's code, compile it and return the handle to it
 		Requires:
 			path to the shader's text (url)
 	*/
-	loadFile: function (url, data, callback, errorCallback) {
-		// Set up an synchronous request! Important!
-		var request = new XMLHttpRequest();
-		request.open('GET', url, false);
+	loadFile: async function (url, data, callback, errorCallBack) {
+		var response = await fetch(url);
+		if (!response.ok) {
+			alert('Network response was not ok');
+			return;
+		}
+		var text = await response.text();
+		callback(text, data);
+	},
 
+	/*loadFile: function (url, data, callback, errorCallback) {
+		// Set up a synchronous request! Important!
+		var request = new XMLHttpRequest();
+		//The third parameter set to false makes the request synchronous
+		request.open('GET', url, false);
+	
 		// Hook the event that gets called as the request progresses
 		request.onreadystatechange = function () {
 			// If the request is "DONE" (completed or failed) and if we got HTTP status 200 (OK)
-
-
 			if (request.readyState == 4 && request.status == 200) {
-				callback(request.responseText, data)
+					callback(request.responseText, data)
 				//} else { // Failed
 				//	errorCallback(url);
 			}
-
+			
 		};
+	
+		request.send(null);    
+	},*/
 
-		request.send(null);
-	},
-
-	loadFiles: function (urls, callback, errorCallback) {
+	loadFiles: async function (urls, callback, errorCallback) {
 		var numUrls = urls.length;
 		var numComplete = 0;
 		var result = [];
@@ -120,14 +155,34 @@ var utils = {
 		}
 
 		for (var i = 0; i < numUrls; i++) {
-			this.loadFile(urls[i], i, partialCallback, errorCallback);
+			await this.loadFile(urls[i], i, partialCallback, errorCallback);
 		}
 	},
 
-	// *** TEXTURE UTILS (to solve problems with non power of 2 textures in webGL
+	/*loadFiles: function (urls, gl, callback, errorCallback) {
+		var numUrls = urls.length;
+		var numComplete = 0;
+		var result = [];
+
+		// Callback for a single file
+		function partialCallback(text, urlIndex) {
+			result[urlIndex] = text;
+			numComplete++;
+
+			// When all files have downloaded
+			if (numComplete == numUrls) {
+				callback(gl, result);
+			}
+		}
+
+		for (var i = 0; i < numUrls; i++) {
+			this.loadFile(urls[i], i, partialCallback, errorCallback);
+		}
+	},*/
+
+	// **** TEXTURE UTILS (to solve problems with non power of 2 textures in webGL) ****
 
 	getTexture: function (context, image_URL) {
-
 		var image = new Image();
 		image.webglTexture = false;
 		image.isLoaded = false;
@@ -168,7 +223,7 @@ var utils = {
 		return x + 1;
 	},
 
-	//*** Interaction UTILS	
+	// **** INTERACTION UTILS ****
 	
 	initInteraction: function () {
 		var keyFunction = function (e) {
@@ -204,13 +259,12 @@ var utils = {
 			if (e.keyCode == 83) {	// s
 				elevation -= delta * 10.0;
 			}
-
 		}
-		//'window' is a JavaScript object (if "canvas", it will not work)
+		// 'window' is a JavaScript object (if "canvas", it will not work)
 		window.addEventListener("keyup", keyFunction, false);
 	},
 
-	//*** MATH LIBRARY
+	// **** MATH LIBRARY ****
 
 	degToRad: function (angle) {
 		return (angle * Math.PI / 180);
@@ -229,7 +283,7 @@ var utils = {
 			0, 0, 1];
 	},
 
-	// returns the 3x3 submatrix from a Matrix4x4
+	// Returns the 3x3 submatrix from a Matrix4x4
 	sub3x3from4x4: function (m) {
 		out = [];
 		out[0] = m[0]; out[1] = m[1]; out[2] = m[2];
@@ -250,7 +304,6 @@ var utils = {
 	},
 
 	//Transpose the values of a mat3
-
 	transposeMatrix3: function (a) {
 
 		out = [];
@@ -301,7 +354,7 @@ var utils = {
 		return out;
 	},
 
-	//requires as a parameter a 4x4 matrix (array of 16 values)
+	// Requires as a parameter a 4x4 matrix (array of 16 values)
 	invertMatrix: function (m) {
 
 		var out = [];
@@ -339,7 +392,7 @@ var utils = {
 				  m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
 
 		inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] +
-				 m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+				  m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
 
 		inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] -
 				   m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
@@ -406,7 +459,7 @@ var utils = {
 	},
 
 	multiplyMatrixVector: function (m, v) {
-		/* Mutiplies a matrix [m] by a vector [v] */
+		// Mutiplies a matrix [m] by a vector [v]
 
 		var out = [];
 
@@ -426,7 +479,7 @@ var utils = {
 		return out;
 	},
 	
-	//*** MODEL MATRIX OPERATIONS
+	//**** MODEL MATRIX OPERATIONS ****
 
 	MakeTranslateMatrix: function (dx, dy, dz) {
 		// Create a transform matrix for a translation of ({dx}, {dy}, {dz}).
@@ -498,10 +551,10 @@ var utils = {
 		return out;
 	},
 
-	//*** PROJECTION MATRIX OPERATIONS
+	// **** PROJECTION MATRIX OPERATIONS ****
 	
 	MakeWorld: function (tx, ty, tz, rx, ry, rz, s) {
-		//Creates a world matrix for an object.
+		// Creates a world matrix for an object.
 
 		var Rx = this.MakeRotateXMatrix(ry);
 		var Ry = this.MakeRotateYMatrix(rx);
