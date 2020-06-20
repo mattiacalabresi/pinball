@@ -31,194 +31,224 @@ void main() {
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
 }`;
 
-var program;
-var gl;
+var viewX = -6;
+var viewY = 17;
+var viewZ = -8;
+var viewPhi = -45;
+var viewTheta = -225;
 
-var baseDir;
+var viewXSpeed = 0;
+var viewYSpeed = 0;
+var viewZSpeed = 0;
+var viewPhiSpeed = 0;
+var viewThetaSpeed = 0;
 
-var ballMesh;
-var bodyMesh;
-var bumper1Mesh;
-var bumper2Mesh;
-var bumper3ath;
-var dl1Mesh;
-var dl2Mesh;
-var dl3Mesh;
-var dl4Mesh;
-var dl5Mesh;
-var dl6Mesh;
-var dr1Mesh;
-var dr2Mesh;
-var dr3Mesh;
-var dr4Mesh;
-var dr5Mesh;
-var dr6Mesh;
-var leftButtonMesh;
-var leftFlipperMesh;
-var rightButtonMesh;
-var rightFlipperMesh;
+const positionSpeed = 1;
+const angleSpeed = 10;
+const dt = 1/30;
 
-var currentMesh;
+const viewXIncreaseKey = "d";
+const viewXDecreaseKey = "a";
+const viewYIncreaseKey = "w";
+const viewYDecreaseKey = "s";
+const viewZIncreaseKey = "e";
+const viewZDecreaseKey = "q";
+const viewPhiIncreaseKey = "r";
+const viewPhiDecreaseKey = "f";
+const viewThetaIncreaseKey = "t";
+const viewThetaDecreaseKey = "g";
+
+window.addEventListener("keydown", handlePress);
+window.addEventListener("keyup", handleRelease);
+
+function handlePress(event) {
+	switch(event.key) {
+		case viewXIncreaseKey:
+			return viewXSpeed = positionSpeed;
+		case viewXDecreaseKey:
+			return viewXSpeed = -positionSpeed;
+		case viewYIncreaseKey:
+			return viewYSpeed = positionSpeed;
+		case viewYDecreaseKey:
+			return viewYSpeed = -positionSpeed;
+		case viewZIncreaseKey:
+			return viewZSpeed = positionSpeed;
+		case viewZDecreaseKey:
+			return viewZSpeed = -positionSpeed;
+		case viewPhiIncreaseKey:
+			return viewPhiSpeed = angleSpeed;
+		case viewPhiDecreaseKey:
+			return viewPhiSpeed = -angleSpeed;
+		case viewThetaIncreaseKey:
+			return viewThetaSpeed = angleSpeed;
+		case viewThetaDecreaseKey:
+			return viewThetaSpeed = -angleSpeed;
+		default:
+			return 0;
+	}
+}
+
+function handleRelease(event) {
+	switch(event.key) {
+		case viewXIncreaseKey:
+		case viewXDecreaseKey:
+			return viewXSpeed = 0;
+		case viewYIncreaseKey:
+		case viewYDecreaseKey:
+			return viewYSpeed = 0;
+		case viewZIncreaseKey:
+		case viewZDecreaseKey:
+			return viewZSpeed = 0;
+		case viewPhiIncreaseKey:
+		case viewPhiDecreaseKey:
+			return viewPhiSpeed = 0;
+		case viewThetaIncreaseKey:
+		case viewThetaDecreaseKey:
+			return viewThetaSpeed = 0;
+		default:
+			return 0;
+	}
+}
+
+var ballMesh = new OBJ.Mesh(ballStr);
+var bodyMesh = new OBJ.Mesh(bodyStr);
+var bumper1Mesh = new OBJ.Mesh(bumper1Str);
+var bumper2Mesh = new OBJ.Mesh(bumper2Str);
+var bumper3Mesh = new OBJ.Mesh(bumper3Str);
+var dl1Mesh = new OBJ.Mesh(dl1Str);
+var dl2Mesh = new OBJ.Mesh(dl2Str);
+var dl3Mesh = new OBJ.Mesh(dl3Str);
+var dl4Mesh = new OBJ.Mesh(dl4Str);
+var dl5Mesh = new OBJ.Mesh(dl5Str);
+var dl6Mesh = new OBJ.Mesh(dl6Str);
+var dr1Mesh = new OBJ.Mesh(dr1Str);
+var dr2Mesh = new OBJ.Mesh(dr2Str);
+var dr3Mesh = new OBJ.Mesh(dr3Str);
+var dr4Mesh = new OBJ.Mesh(dr4Str);
+var dr5Mesh = new OBJ.Mesh(dr5Str);
+var dr6Mesh = new OBJ.Mesh(dr6Str);
+var leftButtonMesh = new OBJ.Mesh(leftButtonStr);
+var leftFlipperMesh = new OBJ.Mesh(leftFlipperStr);
+var pullerMesh = new OBJ.Mesh(pullerStr);
+var rightButtonMesh = new OBJ.Mesh(rightButtonStr);
+var rightFlipperMesh = new OBJ.Mesh(rightFlipperStr);
+
+var allMeshes = [ballMesh, bodyMesh, bumper1Mesh, bumper2Mesh, bumper3Mesh, dl1Mesh, dl2Mesh, dl3Mesh, dl4Mesh, dl5Mesh, dl6Mesh,
+				dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh, leftButtonMesh, leftFlipperMesh, pullerMesh, rightButtonMesh, rightFlipperMesh];
 
 function main() {
 
-  utils.resizeCanvasToDisplaySize(gl.canvas);
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.clearColor(0.85, 0.85, 0.85, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);
+	var program = null;
 
-  var cubeWorldMatrix = new Array();    //One world matrix for each cube...
+	//define directional light
+	var dirLightAlpha = utils.degToRad(-60);
+	var dirLightBeta = utils.degToRad(90);
 
-  //define directional light
-  var dirLightAlpha = -utils.degToRad(60);
-  var dirLightBeta = -utils.degToRad(120);
+	var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+	Math.sin(dirLightAlpha),
+	Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+	];
+	var directionalLightColor = [0.1, 1.0, 1.0];
 
-  var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-  Math.sin(dirLightAlpha),
-  Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
-  ];
-  var directionalLightColor = [0.1, 1.0, 1.0];
+	//Define material color
+	var materialColor = [0.5, 0.5, 0.5];
 
-  //Define material color
-  var cubeMaterialColor = [0.5, 0.5, 0.5];
+	var canvas = document.createElement("canvas");
+	document.body.appendChild(canvas);
+	document.body.style.backgroundColor = "gray";
+	canvas.style.backgroundColor = "white";
 
-  cubeWorldMatrix[0] = utils.MakeWorld(-3.0, 0.0, -1.5, 0.0, 0.0, 0.0, 0.5);
-  cubeWorldMatrix[1] = utils.MakeWorld(3.0, 0.0, -1.5, 0.0, 0.0, 0.0, 0.5);
-  cubeWorldMatrix[2] = utils.MakeWorld(0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.5);
-  cubeWorldMatrix[3] = utils.MakeWorld(-3.0, 0.0, 1.5, 0.0, 0.0, 0.0, 0.5);
+	var gl = canvas.getContext("webgl2");
+	if (!gl) {
+		document.write("GL context not opened");
+		return;
+	}
+	utils.resizeCanvasToDisplaySize(gl.canvas);
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	gl.clearColor(0.85, 0.85, 0.85, 1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.enable(gl.DEPTH_TEST);
 
-  var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
-  var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
-  var program = utils.createProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
+	var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
+	var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
+	var program = utils.createProgram(gl, vertexShader, fragmentShader);
+	gl.useProgram(program);
 
-  var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
-  var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
-  var matrixLocation = gl.getUniformLocation(program, "matrix");
-  var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-  var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-  var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-  var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
 
-  var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
+	var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
+	var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
+	var matrixLocation = gl.getUniformLocation(program, "matrix");
+	var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
+	var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+	var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
+	var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
 
-  var vao = gl.createVertexArray();
+	var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
+	var vaos = new Array(allMeshes.length);
 
-  gl.bindVertexArray(vao);
-  var positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(currentMesh.vertices), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(positionAttributeLocation);
-  gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+	function addMeshToScene(i) {
+		
+		let mesh = allMeshes[i];
+		let vao = gl.createVertexArray();
+		vaos[i] = vao;
+		gl.bindVertexArray(vao);
 
-  var normalBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(currentMesh.vertexNormals), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(normalAttributeLocation);
-  gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+		var positionBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertices), gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(positionAttributeLocation);
+		gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-  var indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(currentMesh.indices), gl.STATIC_DRAW);
+		var normalBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexNormals), gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(normalAttributeLocation);
+		gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-  drawScene();
+		var indexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.STATIC_DRAW);
+	}
 
-  function drawScene() {
+	for(let i in allMeshes)
+		addMeshToScene(i);
+		
+	function drawScene() {
 
-    gl.clearColor(0.85, 0.85, 0.85, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		viewX += viewXSpeed * dt;
+		viewY += viewYSpeed * dt;
+		viewZ += viewZSpeed * dt;
+		viewPhi += viewPhiSpeed * dt;
+		viewTheta += viewThetaSpeed * dt;
 
-    var viewMatrix = utils.MakeView(3.0, 3.0, 2.5, -45.0, -40.0);
-    var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));//viewMatrix;
-    var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix), directionalLight);
+		gl.clearColor(0.85, 0.85, 0.85, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    for (i = 0; i < 4; i++) {
-      var worldViewMatrix = utils.multiplyMatrices(viewMatrix, cubeWorldMatrix[i]);
-      var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+		var viewMatrix = utils.MakeView(viewX, viewY, viewZ, viewPhi, viewTheta);
+		var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));//viewMatrix;
+		var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix), directionalLight);
 
-      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-      var cubeNormalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
+		for (var i = 0; i < allMeshes.length; i ++) {
+			var worldViewMatrix = utils.multiplyMatrices(viewMatrix, allLocalMatrices[i]);
+			var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
-      gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(cubeNormalMatrix));
+			gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+			var cubeNormalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
 
-      gl.uniform3fv(materialDiffColorHandle, cubeMaterialColor);
-      gl.uniform3fv(lightColorHandle, directionalLightColor);
-      gl.uniform3fv(lightDirectionHandle, lightDirectionTransformed);
+			gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(cubeNormalMatrix));
 
-      gl.bindVertexArray(vao);
-      gl.drawElements(gl.TRIANGLES, currentMesh.indices.length, gl.UNSIGNED_SHORT, 0);
-    }
+			gl.uniform3fv(materialDiffColorHandle, materialColor);
+			gl.uniform3fv(lightColorHandle, directionalLightColor);
+			gl.uniform3fv(lightDirectionHandle, lightDirectionTransformed);
 
-    window.requestAnimationFrame(drawScene);
-  }
+			gl.bindVertexArray(vaos[i]); 
+			gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
+		}
+
+		window.requestAnimationFrame(drawScene);
+	}
+
+	drawScene();
 }
 
-async function init() {
-  var path = window.location.pathname;
-  var page = path.split("/").pop();
-  baseDir = window.location.href.replace(page, '') + '/models/';
-
-  var ballStr = await utils.get_objstr(baseDir + 'Ball.obj');
-  var bodyStr = await utils.get_objstr(baseDir + 'Body.obj');
-  var bumper1Str = await utils.get_objstr(baseDir + 'Bumper1.obj');
-  var bumper2Str = await utils.get_objstr(baseDir + 'Bumper2.obj');
-  var bumper3Str = await utils.get_objstr(baseDir + 'Bumper3.obj');
-  var dl1Str = await utils.get_objstr(baseDir + 'DL1.obj');
-  var dl2Str = await utils.get_objstr(baseDir + 'DL2.obj');
-  var dl3Str = await utils.get_objstr(baseDir + 'DL3.obj');
-  var dl4Str = await utils.get_objstr(baseDir + 'DL4.obj');
-  var dl5Str = await utils.get_objstr(baseDir + 'DL5.obj');
-  var dl6Str = await utils.get_objstr(baseDir + 'DL6.obj');
-  var dr1Str = await utils.get_objstr(baseDir + 'DR1.obj');
-  var dr2Str = await utils.get_objstr(baseDir + 'DR2.obj');
-  var dr3Str = await utils.get_objstr(baseDir + 'DR3.obj');
-  var dr4Str = await utils.get_objstr(baseDir + 'DR4.obj');
-  var dr5Str = await utils.get_objstr(baseDir + 'DR5.obj');
-  var dr6Str = await utils.get_objstr(baseDir + 'DR6.obj');
-  var leftButtonStr = await utils.get_objstr(baseDir + 'LeftButton.obj');
-  var leftFlipperStr = await utils.get_objstr(baseDir + 'LeftFlipper.obj');
-  var rightButtonStr = await utils.get_objstr( baseDir + 'RightButton.obj');
-  var rightFlipperStr = await utils.get_objstr(baseDir + 'RightFlipper.obj');
-
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  var canvas = document.getElementById("c");
-  gl = canvas.getContext("webgl2");
-
-  if (!gl) {
-    document.write("GL context not opened");
-    return;
-  }
-
-  gl.useProgram(program);
-
-  ballMesh = new OBJ.Mesh(ballStr);
-  bodyMesh = new OBJ.Mesh(bodyStr);
-  bumper1Mesh = new OBJ.Mesh(bumper1Str);
-  bumper2Mesh = new OBJ.Mesh(bumper2Str);
-  bumper3Mesh = new OBJ.Mesh(bumper3Str);
-  dl1Mesh = new OBJ.Mesh(dl1Str);
-  dl2Mesh = new OBJ.Mesh(dl2Str);
-  dl3Mesh = new OBJ.Mesh(dl3Str);
-  dl4Mesh = new OBJ.Mesh(dl4Str);
-  dl5Mesh = new OBJ.Mesh(dl5Str);
-  dl6Mesh = new OBJ.Mesh(dl6Str);
-  dr1Mesh = new OBJ.Mesh(dr1Str);
-  dr2Mesh = new OBJ.Mesh(dr2Str);
-  dr3Mesh = new OBJ.Mesh(dr3Str);
-  dr4Mesh = new OBJ.Mesh(dr4Str);
-  dr5Mesh = new OBJ.Mesh(dr5Str);
-  dr6Mesh = new OBJ.Mesh(dr6Str);
-  leftButtonMesh = new OBJ.Mesh(leftButtonStr);
-  leftFlipperMesh = new OBJ.Mesh(leftFlipperStr);
-  rightButtonMesh = new OBJ.Mesh(rightButtonStr);
-  rightFlipperMesh = new OBJ.Mesh(rightFlipperStr);
-  
-  currentMesh = leftFlipperMesh;
-
-  main();
-}
-
-window.onload = init;
+window.onload = main;
