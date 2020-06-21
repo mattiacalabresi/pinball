@@ -4,12 +4,16 @@ var vs = `#version 300 es
 
 in vec3 inPosition;
 in vec3 inNormal;
+in vec2 in_uv;
+
+out vec2 fsUV;
 out vec3 fsNormal;
 
 uniform mat4 matrix; 
 uniform mat4 nMatrix;     //matrix to transform normals
 
 void main() {
+  fsUV = in_uv;
   fsNormal = mat3(nMatrix) * inNormal; 
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
@@ -18,12 +22,14 @@ var fs = `#version 300 es
 
 precision mediump float;
 
+in vec2 fsUV;
 in vec3 fsNormal;
 out vec4 outColor;
 
 uniform vec3 mDiffColor;
 uniform vec3 lightDirection; 
-uniform vec3 lightColor;   
+uniform vec3 lightColor; 
+uniform sampler2D in_texture;
 
 void main() {
 
@@ -31,6 +37,7 @@ void main() {
   vec3 lDir = lightDirection; 
   vec3 lambertColor = mDiffColor * lightColor * dot(-lDir,nNormal);
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
+  outColor = texture(in_texture, fsUV);
 }`;
 
 // CAMERA STATUS AND CONTROLS:
@@ -142,6 +149,8 @@ var rightFlipperMesh = new OBJ.Mesh(rightFlipperStr);
 var allMeshes = [ballMesh, bodyMesh, bumper1Mesh, bumper2Mesh, bumper3Mesh, dl1Mesh, dl2Mesh, dl3Mesh, dl4Mesh, dl5Mesh, dl6Mesh,
 				dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh, leftButtonMesh, leftFlipperMesh, pullerMesh, rightButtonMesh, rightFlipperMesh];
 
+var texture;
+
 function main() {
 
 	var program = null;
@@ -183,6 +192,8 @@ function main() {
 
 	var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
 	var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
+    var uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    var textLocation = gl.getUniformLocation(program, "in_texture");
 	var matrixLocation = gl.getUniformLocation(program, "matrix");
 	var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
 	var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
@@ -191,6 +202,23 @@ function main() {
 
 	var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
 	var vaos = new Array(allMeshes.length);
+    
+    texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    var image = new Image();
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    var basedir = window.location.href.replace(page, '');
+    image.src = basedir+ "../textures/StarWarsPinball.png";
+    image.onload= function() {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
 
 	function addMeshToScene(i) {
 		
@@ -204,6 +232,13 @@ function main() {
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertices), gl.STATIC_DRAW);
 		gl.enableVertexAttribArray(positionAttributeLocation);
 		gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+        
+        var uvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.textures), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(uvAttributeLocation);
+        gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
 
 		var normalBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
