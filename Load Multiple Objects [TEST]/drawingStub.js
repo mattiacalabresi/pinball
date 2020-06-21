@@ -1,3 +1,5 @@
+// VERTEX AND FRAGMENT SHADERS
+
 var vs = `#version 300 es
 
 in vec3 inPosition;
@@ -31,11 +33,13 @@ void main() {
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
 }`;
 
-var viewX = -6;
+// CAMERA STATUS AND CONTROLS:
+
+var viewX = 0;
 var viewY = 17;
-var viewZ = -8;
-var viewPhi = -45;
-var viewTheta = -225;
+var viewZ = 0;
+var viewPhi = -90+6.51;
+var viewTheta = 180;
 
 var viewXSpeed = 0;
 var viewYSpeed = 0;
@@ -45,7 +49,7 @@ var viewThetaSpeed = 0;
 
 const positionSpeed = 1;
 const angleSpeed = 10;
-const dt = 1/30;
+const camera_dt = 1/30;
 
 const viewXIncreaseKey = "d";
 const viewXDecreaseKey = "a";
@@ -109,6 +113,8 @@ function handleRelease(event) {
 			return 0;
 	}
 }
+
+// MESHES
 
 var ballMesh = new OBJ.Mesh(ballStr);
 var bodyMesh = new OBJ.Mesh(bodyStr);
@@ -215,20 +221,35 @@ function main() {
 		
 	function drawScene() {
 
-		viewX += viewXSpeed * dt;
-		viewY += viewYSpeed * dt;
-		viewZ += viewZSpeed * dt;
-		viewPhi += viewPhiSpeed * dt;
-		viewTheta += viewThetaSpeed * dt;
+		// adjust camera
+		viewX += viewXSpeed * camera_dt;
+		viewY += viewYSpeed * camera_dt;
+		viewZ += viewZSpeed * camera_dt;
+		viewPhi += viewPhiSpeed * camera_dt;
+		viewTheta += viewThetaSpeed * camera_dt;
 
+		// simulate one step of physics
+		physicsMain();
+
+		// clear scene
 		gl.clearColor(0.85, 0.85, 0.85, 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+		// compose view and light
 		var viewMatrix = utils.MakeView(viewX, viewY, viewZ, viewPhi, viewTheta);
-		var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));//viewMatrix;
+		var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
 		var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix), directionalLight);
 
+		// update world matrices for moving objects
+		allLocalMatrices[0] = getBallLocalMatrix(ball.position.x, ball.position.y);
+		allLocalMatrices[18] = getLeftFlipperLocalMatrix(leftFlipper.angle);
+		allLocalMatrices[21] = getRightFlipperLocalMatrix(rightFlipper.angle);
+		
+		// add each mesh / object with its world matrix
 		for (var i = 0; i < allMeshes.length; i ++) {
+
+
+
 			var worldViewMatrix = utils.multiplyMatrices(viewMatrix, allLocalMatrices[i]);
 			var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
