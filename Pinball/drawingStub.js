@@ -150,6 +150,17 @@ var allMeshes = [ballMesh, bodyMesh, bumper1Mesh, bumper2Mesh, bumper3Mesh, dl1M
   dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh, leftButtonMesh, leftFlipperMesh, pullerMesh, rightButtonMesh, rightFlipperMesh];
 
 var texture;
+var actualScore = 0;
+const numUVs = [[0.735309, 0.956854, 0.760579, 0.918019, 0.760579, 0.956854, 0.735309, 0.918019],
+                [0.636297, 0.996017, 0.661567, 0.957183, 0.661567, 0.996017, 0.636297, 0.957183],
+                [0.660956, 0.996505, 0.686226, 0.957671, 0.686226, 0.996505, 0.660956, 0.957671],
+                [0.685614, 0.996261, 0.710884, 0.957427, 0.710884, 0.996261, 0.685614, 0.957427],
+                [0.710760, 0.996749, 0.736030, 0.957915, 0.736030, 0.996749, 0.710760, 0.957915],
+                [0.735907, 0.996749, 0.761177, 0.957915, 0.761177, 0.996749, 0.735907, 0.957915],
+                [0.635321, 0.956466, 0.660591, 0.917632, 0.660591, 0.956466, 0.635321, 0.917632],
+                [0.660705, 0.956272, 0.685975, 0.917438, 0.685975, 0.956272, 0.660705, 0.917438],
+                [0.684927, 0.956466, 0.710197, 0.917632, 0.710197, 0.956466, 0.684927, 0.917632],
+                [0.710118, 0.956466, 0.735388, 0.917632, 0.735388, 0.956466, 0.710118, 0.917632]];
 
 function main() {
 
@@ -251,8 +262,24 @@ function main() {
 
   for (let i in allMeshes)
     addMeshToScene(i);
+    
+  function updateScoreTex() {
+       if (actualScore != score) {
+           actualScore = score;
+           let scoreArr = Array.from(String(actualScore), Number).reverse();
+           let scoreMeshes = [dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh];
+           for (let i=0; i < scoreArr.length; i++) {
+               let digit = scoreArr[i];
+               scoreMeshes[i].textures = numUVs[digit];
+               addMeshToScene(i+11);
+           }
+       }
+   }
 
   function drawScene() {
+      
+    // update uv coordinates of dynamic score system  
+    updateScoreTex();
 
     // adjust camera
     viewX += viewXSpeed * camera_dt;

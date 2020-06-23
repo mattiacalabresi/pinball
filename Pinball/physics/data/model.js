@@ -409,7 +409,7 @@ class Ball {
 
         let hit = this.handleCollision(impactPoint, Vector.NULL, BUMPER_RESTITUTION, 0);
         if (hit)
-            score += 50;
+            score += Date.now() % 61;
     }
 
     /**
