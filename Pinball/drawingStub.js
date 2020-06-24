@@ -1,44 +1,6 @@
-// VERTEX AND FRAGMENT SHADERS
-
-var vs = `#version 300 es
-
-in vec3 inPosition;
-in vec3 inNormal;
-in vec2 in_uv;
-
-out vec2 fsUV;
-out vec3 fsNormal;
-
-uniform mat4 matrix; 
-uniform mat4 nMatrix;     //matrix to transform normals
-
-void main() {
-  fsUV = in_uv;
-  fsNormal = mat3(nMatrix) * inNormal; 
-  gl_Position = matrix * vec4(inPosition, 1.0);
-}`;
-
-var fs = `#version 300 es
-
-precision mediump float;
-
-in vec2 fsUV;
-in vec3 fsNormal;
-out vec4 outColor;
-
-uniform vec3 mDiffColor;
-uniform vec3 lightDirection; 
-uniform vec3 lightColor; 
-uniform sampler2D in_texture;
-
-void main() {
-
-  vec3 nNormal = normalize(fsNormal);
-  vec3 lDir = lightDirection; 
-  vec3 lambertColor = mDiffColor * lightColor * dot(-lDir,nNormal);
-  outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
-  outColor = texture(in_texture, fsUV);
-}`;
+var program;
+var baseDir;
+var shaderDir;
 
 // CAMERA STATUS AND CONTROLS:
 
@@ -163,9 +125,13 @@ const numUVs = [[0.735309, 0.956854, 0.760579, 0.918019, 0.760579, 0.956854, 0.7
                 [0.710118, 0.956466, 0.735388, 0.917632, 0.735388, 0.956466, 0.710118, 0.917632]];
 
 function main() {
-
-  var program = null;
-
+    
+  utils.resizeCanvasToDisplaySize(gl.canvas);
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  gl.clearColor(0.85, 0.85, 0.85, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);  
+  
   //define directional light
   var dirLightAlpha = utils.degToRad(-60);
   var dirLightBeta = utils.degToRad(90);
@@ -174,37 +140,22 @@ function main() {
   Math.sin(dirLightAlpha),
   Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
   ];
-  var directionalLightColor = [0.1, 1.0, 1.0];
+  var directionalLightColor = [1.0, 1.0, 1.0];
 
-  //Define material color
-  var materialColor = [0.5, 0.5, 0.5];
-
-  var canvas = document.createElement("canvas");
-  document.body.appendChild(canvas);
-  document.body.style.backgroundColor = "gray";
-  canvas.style.backgroundColor = "white";
-
-  var gl = canvas.getContext("webgl2");
-  if (!gl) {
-    document.write("GL context not opened");
-    return;
-  }
-  utils.resizeCanvasToDisplaySize(gl.canvas);
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.clearColor(0.85, 0.85, 0.85, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);
-
-  var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
-  var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
-  var program = utils.createProgram(gl, vertexShader, fragmentShader);
-  gl.useProgram(program);
+  //Define material color 
+  var materialColor = [1.0, 1.0, 1.0];
+    
+  //Define ambient light color and material
+  var ambientLight = [0.55, 0.1, 0.8];
+  var ambientMat = [0.4, 0.2, 0.6];
 
   var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
   var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
   var uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
   var textLocation = gl.getUniformLocation(program, "in_texture");
   var matrixLocation = gl.getUniformLocation(program, "matrix");
+  var ambientLightColorHandle = gl.getUniformLocation(program, "ambientLightCol");
+  var ambientMaterialHandle = gl.getUniformLocation(program, "ambientMat");
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
   var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
   var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
@@ -215,12 +166,9 @@ function main() {
 
   texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  var image = new Image();
-  var path = window.location.pathname;
-  var page = path.split("/").pop();
-  var basedir = window.location.href.replace(page, '');
-  image.src = basedir + "textures/StarWarsPinball.png";
+    
+  var image = new Image();    
+  image.src = baseDir + "textures/StarWarsPinball.png";
   image.onload = function () {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -318,6 +266,8 @@ function main() {
       gl.uniform3fv(materialDiffColorHandle, materialColor);
       gl.uniform3fv(lightColorHandle, directionalLightColor);
       gl.uniform3fv(lightDirectionHandle, lightDirectionTransformed);
+      gl.uniform3fv(ambientLightColorHandle, ambientLight);
+      gl.uniform3fv(ambientMaterialHandle, ambientMat);
 
       gl.bindVertexArray(vaos[i]);
       gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
@@ -329,4 +279,33 @@ function main() {
   drawScene();
 }
 
-window.onload = main;
+async function init(){
+
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+    shaderDir = baseDir+"shaders/";
+
+    var canvas = document.createElement("canvas");
+    gl = canvas.getContext("webgl2");
+    if (!gl) {
+        document.write("GL context not opened");
+        return;
+    }
+    document.body.appendChild(canvas);
+    document.body.style.backgroundColor = "gray";
+    canvas.style.backgroundColor = "white";
+
+    await utils.loadFiles([shaderDir + 'vertSh.glsl', shaderDir + 'fragSh.glsl'], function (shaderText) {
+      var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+      console.log(vertexShader);
+      var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+      program = utils.createProgram(gl, vertexShader, fragmentShader);
+
+    });
+    gl.useProgram(program);
+
+    main();
+}
+
+window.onload = init;
