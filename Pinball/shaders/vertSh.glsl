@@ -12,6 +12,6 @@ uniform mat4 nMatrix;     //matrix to transform normals
 
 void main() {
   fsUV = in_uv;
-  fsNormal = mat3(nMatrix) * inNormal; 
+  fsNormal = inNormal; 
   gl_Position = matrix * vec4(inPosition, 1.0);
 }

@@ -302,6 +302,17 @@ var utils = {
 		out[2] = x * m[6] + y * m[7] + z * m[8];
 		return out;
 	},
+    
+    normalizeVec3 : function(a) {
+
+		out = [];
+		var normV = Math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+		out[0] = a[0]/normV;
+		out[1] = a[1]/normV;
+		out[2] = a[2]/normV;	 
+		
+		return out;
+	},
 
 	//Transpose the values of a mat3
 	transposeMatrix3: function (a) {

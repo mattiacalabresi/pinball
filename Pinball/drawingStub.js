@@ -245,9 +245,7 @@ function main() {
 
     // compose view and light
     var viewMatrix = utils.MakeView(viewX, viewY, viewZ, viewPhi, viewTheta);
-    var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
-    var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix), directionalLight);
-
+      
     // update world matrices for moving objects
     allLocalMatrices[0] = getBallLocalMatrix(ball.position.x, ball.position.y);
     allLocalMatrices[18] = getLeftFlipperLocalMatrix(leftFlipper.angle);
@@ -257,11 +255,11 @@ function main() {
     for (var i = 0; i < allMeshes.length; i++) {
       var worldViewMatrix = utils.multiplyMatrices(viewMatrix, allLocalMatrices[i]);
       var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-
+        
+      var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(allLocalMatrices[i]));
+      var lightDirectionTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+    
       gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-      var cubeNormalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
-
-      gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(cubeNormalMatrix));
 
       gl.uniform3fv(materialDiffColorHandle, materialColor);
       gl.uniform3fv(lightColorHandle, directionalLightColor);
