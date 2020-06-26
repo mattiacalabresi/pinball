@@ -3,7 +3,7 @@ window.addEventListener("keyup", handleUp);
 
 const LEFT_FLIPPERS_KEY = "x";
 const RIGHT_FLIPPERS_KEY = "n";
-const BALL_LAUNCH_KEY = "l";
+const BALL_LAUNCH_KEY = " ";
 
 function handleDown(event) {
     if (event.key === LEFT_FLIPPERS_KEY)

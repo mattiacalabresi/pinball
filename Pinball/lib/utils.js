@@ -52,7 +52,6 @@ var utils = {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
 			//console.log(canvas.width + " " + window.innerWidth);
-
 		};
 		expandFullScreen();
 		// Resize screen when the browser has triggered the resize event
@@ -81,6 +80,13 @@ var utils = {
 		var text = await response.text();
 		return text;
 	},
+	
+	loadMesh: async function (path){
+		let str = await utils.get_objstr(path);
+		let mesh = new OBJ.Mesh(str);
+		
+		return mesh;
+	  },
 
 	// Function to convert decimal value of colors 
 	decimalToHex: function (d, padding) {

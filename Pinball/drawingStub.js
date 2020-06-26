@@ -1,9 +1,10 @@
+// PATHS
 var program;
 var baseDir;
 var shaderDir;
+var modelsDir;
 
 // CAMERA STATUS AND CONTROLS:
-
 var viewX = 0;
 var viewY = 17;
 var viewZ = 0;
@@ -20,16 +21,16 @@ const positionSpeed = 1;
 const angleSpeed = 10;
 const camera_dt = 1 / 30;
 
-const viewXIncreaseKey = "d";
-const viewXDecreaseKey = "a";
-const viewYIncreaseKey = "w";
-const viewYDecreaseKey = "s";
-const viewZIncreaseKey = "e";
-const viewZDecreaseKey = "q";
-const viewPhiIncreaseKey = "r";
-const viewPhiDecreaseKey = "f";
-const viewThetaIncreaseKey = "t";
-const viewThetaDecreaseKey = "g";
+const viewXIncreaseKey = "ArrowLeft";   // move left
+const viewXDecreaseKey = "ArrowRight";  // move right
+const viewYIncreaseKey = "s";           // zoom in
+const viewYDecreaseKey = "w";           // zoom out
+const viewZIncreaseKey = "ArrowUp";     // move forward
+const viewZDecreaseKey = "ArrowDown";   // move backward
+const viewPhiIncreaseKey = "r";         // tilt up
+const viewPhiDecreaseKey = "f";         // tilt down
+const viewThetaIncreaseKey = "q";       // tilt left
+const viewThetaDecreaseKey = "e";       // tilt right
 
 window.addEventListener("keydown", handlePress);
 window.addEventListener("keyup", handleRelease);
@@ -84,32 +85,30 @@ function handleRelease(event) {
 }
 
 // MESHES
+var ballMesh;
+var bodyMesh;
+var bumper1Mesh;
+var bumper2Mesh;
+var bumper3Mesh;
+var dl1Mesh;
+var dl2Mesh;
+var dl3Mesh;
+var dl4Mesh;
+var dl5Mesh;
+var dl6Mesh;
+var dr1Mesh;
+var dr2Mesh;
+var dr3Mesh;
+var dr4Mesh;
+var dr5Mesh;
+var dr6Mesh;
+var leftButtonMesh;
+var leftFlipperMesh; 
+var pullerMesh;
+var rightButtonMesh;
+var rightFlipperMesh;
 
-var ballMesh = new OBJ.Mesh(ballStr);
-var bodyMesh = new OBJ.Mesh(bodyStr);
-var bumper1Mesh = new OBJ.Mesh(bumper1Str);
-var bumper2Mesh = new OBJ.Mesh(bumper2Str);
-var bumper3Mesh = new OBJ.Mesh(bumper3Str);
-var dl1Mesh = new OBJ.Mesh(dl1Str);
-var dl2Mesh = new OBJ.Mesh(dl2Str);
-var dl3Mesh = new OBJ.Mesh(dl3Str);
-var dl4Mesh = new OBJ.Mesh(dl4Str);
-var dl5Mesh = new OBJ.Mesh(dl5Str);
-var dl6Mesh = new OBJ.Mesh(dl6Str);
-var dr1Mesh = new OBJ.Mesh(dr1Str);
-var dr2Mesh = new OBJ.Mesh(dr2Str);
-var dr3Mesh = new OBJ.Mesh(dr3Str);
-var dr4Mesh = new OBJ.Mesh(dr4Str);
-var dr5Mesh = new OBJ.Mesh(dr5Str);
-var dr6Mesh = new OBJ.Mesh(dr6Str);
-var leftButtonMesh = new OBJ.Mesh(leftButtonStr);
-var leftFlipperMesh = new OBJ.Mesh(leftFlipperStr);
-var pullerMesh = new OBJ.Mesh(pullerStr);
-var rightButtonMesh = new OBJ.Mesh(rightButtonStr);
-var rightFlipperMesh = new OBJ.Mesh(rightFlipperStr);
-
-var allMeshes = [ballMesh, bodyMesh, bumper1Mesh, bumper2Mesh, bumper3Mesh, dl1Mesh, dl2Mesh, dl3Mesh, dl4Mesh, dl5Mesh, dl6Mesh,
-  dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh, leftButtonMesh, leftFlipperMesh, pullerMesh, rightButtonMesh, rightFlipperMesh];
+var allMeshes;
 
 var texture;
 var actualScore = 0;
@@ -125,14 +124,12 @@ const numUVs = [[0.735309, 0.956854, 0.760579, 0.918019, 0.760579, 0.956854, 0.7
                 [0.710118, 0.956466, 0.735388, 0.917632, 0.735388, 0.956466, 0.710118, 0.917632]];
 
 function main() {
-    
-  utils.resizeCanvasToDisplaySize(gl.canvas);
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  
   gl.clearColor(0.85, 0.85, 0.85, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);  
-  
-  //define directional light
+  gl.enable(gl.DEPTH_TEST);
+
+  // define directional light
   var dirLightAlpha = utils.degToRad(-60);
   var dirLightBeta = utils.degToRad(90);
 
@@ -142,10 +139,10 @@ function main() {
   ];
   var directionalLightColor = [1.0, 1.0, 1.0];
 
-  //Define material color 
+  // define material color 
   var materialColor = [1.0, 1.0, 1.0];
-    
-  //Define ambient light color and material
+
+  // define ambient light color and material
   var ambientLight = [0.55, 0.1, 0.8];
   var ambientMat = [0.4, 0.2, 0.6];
 
@@ -166,8 +163,8 @@ function main() {
 
   texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-    
-  var image = new Image();    
+
+  var image = new Image();
   image.src = baseDir + "textures/StarWarsPinball.png";
   image.onload = function () {
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -179,7 +176,6 @@ function main() {
   };
 
   function addMeshToScene(i) {
-
     let mesh = allMeshes[i];
     let vao = gl.createVertexArray();
     vaos[i] = vao;
@@ -210,22 +206,22 @@ function main() {
 
   for (let i in allMeshes)
     addMeshToScene(i);
-    
+
   function updateScoreTex() {
-       if (actualScore != score) {
-           actualScore = score;
-           let scoreArr = Array.from(String(actualScore), Number).reverse();
-           let scoreMeshes = [dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh];
-           for (let i=0; i < scoreArr.length; i++) {
-               let digit = scoreArr[i];
-               scoreMeshes[i].textures = numUVs[digit];
-               addMeshToScene(i+11);
-           }
-       }
-   }
+    if (actualScore != score) {
+      actualScore = score;
+      let scoreArr = Array.from(String(actualScore), Number).reverse();
+      let scoreMeshes = [dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh];
+      for (let i = 0; i < scoreArr.length; i++) {
+        let digit = scoreArr[i];
+        scoreMeshes[i].textures = numUVs[digit];
+        addMeshToScene(i + 11);
+      }
+    }
+  }
 
   function drawScene() {
-      
+
     // update uv coordinates of dynamic score system  
     updateScoreTex();
 
@@ -245,7 +241,7 @@ function main() {
 
     // compose view and light
     var viewMatrix = utils.MakeView(viewX, viewY, viewZ, viewPhi, viewTheta);
-      
+
     // update world matrices for moving objects
     allLocalMatrices[0] = getBallLocalMatrix(ball.position.x, ball.position.y);
     allLocalMatrices[18] = getLeftFlipperLocalMatrix(leftFlipper.angle);
@@ -255,10 +251,10 @@ function main() {
     for (var i = 0; i < allMeshes.length; i++) {
       var worldViewMatrix = utils.multiplyMatrices(viewMatrix, allLocalMatrices[i]);
       var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-        
+
       var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(allLocalMatrices[i]));
       var lightDirectionTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-    
+
       gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
       gl.uniform3fv(materialDiffColorHandle, materialColor);
@@ -277,33 +273,87 @@ function main() {
   drawScene();
 }
 
-async function init(){
+async function init() {
+  // initialize resource paths
+  var path = window.location.pathname;
+  var page = path.split("/").pop();
+  baseDir = window.location.href.replace(page, '');
+  shaderDir = baseDir + "shaders/";
+  modelsDir = baseDir + "models/"
 
-    var path = window.location.pathname;
-    var page = path.split("/").pop();
-    baseDir = window.location.href.replace(page, '');
-    shaderDir = baseDir+"shaders/";
+  // prepare canvas and body styles
+  var canvas = document.createElement("canvas");
+  canvas.style.backgroundColor = "white";
+  gl = canvas.getContext("webgl2");
+  if (!gl) {
+    document.write("GL context not opened");
+    return;
+  }
+  document.body.style.backgroundColor = "gray";
+  document.body.style.overflow = 'hidden';
+  document.body.style.margin = '0';
+  document.body.appendChild(canvas);
+  
+  utils.resizeCanvasToDisplaySize(gl.canvas);
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    var canvas = document.createElement("canvas");
-    gl = canvas.getContext("webgl2");
-    if (!gl) {
-        document.write("GL context not opened");
-        return;
-    }
-    document.body.appendChild(canvas);
-    document.body.style.backgroundColor = "gray";
-    canvas.style.backgroundColor = "white";
+  await utils.loadFiles([shaderDir + 'vertSh.glsl', shaderDir + 'fragSh.glsl'], function (shaderText) {
+    var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+    //console.log(vertexShader);
+    var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+    program = utils.createProgram(gl, vertexShader, fragmentShader);
 
-    await utils.loadFiles([shaderDir + 'vertSh.glsl', shaderDir + 'fragSh.glsl'], function (shaderText) {
-      var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
-      console.log(vertexShader);
-      var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
-      program = utils.createProgram(gl, vertexShader, fragmentShader);
+  });
+  gl.useProgram(program);
+  
+  // load meshes from obj files
+  ballMesh = await utils.loadMesh(modelsDir + "Ball.obj");
+  bodyMesh = await utils.loadMesh(modelsDir + "Body.obj");
+  bumper1Mesh = await utils.loadMesh(modelsDir + "Bumper1.obj");
+  bumper2Mesh = await utils.loadMesh(modelsDir + "Bumper2.obj");
+  bumper3Mesh = await utils.loadMesh(modelsDir + "Bumper3.obj");
+  dl1Mesh = await utils.loadMesh(modelsDir + "DL1.obj");
+  dl2Mesh = await utils.loadMesh(modelsDir + "DL2.obj");
+  dl3Mesh = await utils.loadMesh(modelsDir + "DL3.obj");
+  dl4Mesh = await utils.loadMesh(modelsDir + "DL4.obj");
+  dl5Mesh = await utils.loadMesh(modelsDir + "DL5.obj");
+  dl6Mesh = await utils.loadMesh(modelsDir + "DL6.obj");
+  dr1Mesh = await utils.loadMesh(modelsDir + "DR1.obj");
+  dr2Mesh = await utils.loadMesh(modelsDir + "DR2.obj");
+  dr3Mesh = await utils.loadMesh(modelsDir + "DR3.obj");
+  dr4Mesh = await utils.loadMesh(modelsDir + "DR4.obj");
+  dr5Mesh = await utils.loadMesh(modelsDir + "DR5.obj");
+  dr6Mesh = await utils.loadMesh(modelsDir + "DR6.obj");
+  leftButtonMesh = await utils.loadMesh(modelsDir + "LeftButton.obj");
+  leftFlipperMesh = await utils.loadMesh(modelsDir + "LeftFlipper.obj");
+  pullerMesh = await utils.loadMesh(modelsDir + "Puller.obj");
+  rightButtonMesh = await utils.loadMesh(modelsDir + "RightButton.obj");
+  rightFlipperMesh = await utils.loadMesh(modelsDir + "RightFlipper.obj");
 
-    });
-    gl.useProgram(program);
+  allMeshes = [ballMesh, bodyMesh, bumper1Mesh, bumper2Mesh, bumper3Mesh, dl1Mesh, dl2Mesh, dl3Mesh, dl4Mesh, dl5Mesh, dl6Mesh,
+    dr1Mesh, dr2Mesh, dr3Mesh, dr4Mesh, dr5Mesh, dr6Mesh, leftButtonMesh, leftFlipperMesh, pullerMesh, rightButtonMesh, rightFlipperMesh];
 
-    main();
+  displayControls();
+  main();
+  
+  function displayControls() {
+    console.log('GAME:');
+    console.log('left flipper: ' + LEFT_FLIPPERS_KEY);
+    console.log('right flipper: ' + RIGHT_FLIPPERS_KEY);
+    console.log('launch ball: ' + (BALL_LAUNCH_KEY===' ' ? 'space' : BALL_LAUNCH_KEY));
+    console.log('');
+    console.log('CAMERA:');
+    console.log('move forward: ' + viewZIncreaseKey);
+    console.log('move backward: ' + viewZDecreaseKey);
+    console.log('move left: ' + viewXIncreaseKey);
+    console.log('move right: ' + viewXDecreaseKey);
+    console.log('zoom in: ' + viewYDecreaseKey);
+    console.log('zoom out: ' + viewYIncreaseKey);
+    console.log('tilt up: ' + viewPhiIncreaseKey);
+    console.log('tilt down: ' + viewPhiDecreaseKey);
+    console.log('tilt left: ' + viewThetaIncreaseKey);
+    console.log('tilt right: ' + viewThetaDecreaseKey);
+  }
 }
 
 window.onload = init;
