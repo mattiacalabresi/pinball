@@ -6,9 +6,9 @@ var modelsDir;
 
 // CAMERA STATUS AND CONTROLS:
 var viewX = 0;
-var viewY = 17;
-var viewZ = 0;
-var viewPhi = -90 + 6.51;
+var viewY = 15;
+var viewZ = -7.3;
+var viewPhi = -54;
 var viewTheta = 180;
 
 var viewXSpeed = 0;
@@ -23,14 +23,14 @@ const camera_dt = 1 / 30;
 
 const viewXIncreaseKey = "ArrowLeft";   // move left
 const viewXDecreaseKey = "ArrowRight";  // move right
-const viewYIncreaseKey = "s";           // zoom in
-const viewYDecreaseKey = "w";           // zoom out
+const viewYIncreaseKey = "s";           // move down
+const viewYDecreaseKey = "w";           // move up
 const viewZIncreaseKey = "ArrowUp";     // move forward
 const viewZDecreaseKey = "ArrowDown";   // move backward
 const viewPhiIncreaseKey = "r";         // tilt up
 const viewPhiDecreaseKey = "f";         // tilt down
-const viewThetaIncreaseKey = "q";       // tilt left
-const viewThetaDecreaseKey = "e";       // tilt right
+const viewThetaIncreaseKey = "e";       // tilt left
+const viewThetaDecreaseKey = "q";       // tilt right
 
 window.addEventListener("keydown", handlePress);
 window.addEventListener("keyup", handleRelease);
@@ -236,7 +236,7 @@ function main() {
     physicsMain();
 
     // clear scene
-    gl.clearColor(0.85, 0.85, 0.85, 1.0);
+    gl.clearColor(0.0, 0.1, 0.25, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // compose view and light
@@ -245,6 +245,7 @@ function main() {
     // update world matrices for moving objects
     allLocalMatrices[0] = getBallLocalMatrix(ball.position.x, ball.position.y);
     allLocalMatrices[18] = getLeftFlipperLocalMatrix(leftFlipper.angle);
+    allLocalMatrices[19] = getPullerLocalMatrix(pullerRun);
     allLocalMatrices[21] = getRightFlipperLocalMatrix(rightFlipper.angle);
 
     // add each mesh / object with its world matrix
@@ -337,22 +338,24 @@ async function init() {
   main();
   
   function displayControls() {
-    console.log('GAME:');
-    console.log('left flipper: ' + LEFT_FLIPPERS_KEY);
-    console.log('right flipper: ' + RIGHT_FLIPPERS_KEY);
-    console.log('launch ball: ' + (BALL_LAUNCH_KEY===' ' ? 'space' : BALL_LAUNCH_KEY));
-    console.log('');
-    console.log('CAMERA:');
-    console.log('move forward: ' + viewZIncreaseKey);
-    console.log('move backward: ' + viewZDecreaseKey);
-    console.log('move left: ' + viewXIncreaseKey);
-    console.log('move right: ' + viewXDecreaseKey);
-    console.log('zoom in: ' + viewYDecreaseKey);
-    console.log('zoom out: ' + viewYIncreaseKey);
-    console.log('tilt up: ' + viewPhiIncreaseKey);
-    console.log('tilt down: ' + viewPhiDecreaseKey);
-    console.log('tilt left: ' + viewThetaIncreaseKey);
-    console.log('tilt right: ' + viewThetaDecreaseKey);
+    console.log("%c\nGAME CONTROLS", "color:#ffc000; weight:bold; font-family:bahnschrift; font-size:16px;")
+    let str = "Left Flipper:\t\t\t\t" + LEFT_FLIPPERS_KEY +
+    "\nRight Flipper:\t\t\t\t" + RIGHT_FLIPPERS_KEY +
+    "\nLaunch Ball:\t\t\t\t" + (BALL_LAUNCH_KEY === " " ? "Spacebar" : BALL_LAUNCH_KEY);
+    console.log(`%c${str}`, "color:#ffe080; weight:light; font-family:bahnschrift light; font-size:14px;");
+
+    console.log("%c\nCAMERA CONTROLS", "color:#00c0c0; weight:bold; font-family:bahnschrift; font-size:16px;")
+    str = "Move forward:\t\t\t" + viewZIncreaseKey +
+    "\nMove backward:\t\t\t" + viewZDecreaseKey +
+    "\nMove left:\t\t\t\t\t" + viewXIncreaseKey +
+    "\nMove right:\t\t\t\t\t" + viewXDecreaseKey +
+    "\nMove down:\t\t\t\t\t" + viewYDecreaseKey +
+    "\nMove up:\t\t\t\t\t\t" + viewYIncreaseKey +
+    "\nTilt up:\t\t\t\t\t\t\t" + viewPhiIncreaseKey +
+    "\nTilt down:\t\t\t\t\t" + viewPhiDecreaseKey +
+    "\nPan left:\t\t\t\t\t\t" + viewThetaIncreaseKey +
+    "\nPan right:\t\t\t\t\t" + viewThetaDecreaseKey;
+    console.log(`%c${str}`, "color:#80e0e0; weight:light; font-family:bahnschrift light; font-size:14px;");
   }
 }
 

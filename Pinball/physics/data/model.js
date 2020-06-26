@@ -95,7 +95,7 @@ const FLIPPER_ENERGY_TRANSFER_EFFICIENCY = .4;
 /**
  * @type {number} x coordinate of the start position of the ball
  */
-const BALL_START_X = 4;
+const BALL_START_X = 4.6;
 
 /**
  * @type {number} y coordinate of the start position of the ball
@@ -105,7 +105,7 @@ const BALL_START_Y = 2;
 /**
  * @type {number} y component of the launch velocity of the ball
  */
-const BALL_LAUNCH_SPEED = 7;
+const BALL_LAUNCH_SPEED = 14;
 
 // INFFERRED:
 
@@ -372,16 +372,25 @@ class Ball {
      * @param {number} dt the time differential
      */
     update(gravity, dt) {
+        const CENTER_SEEKING_FORCE = .4;
         this.velocity = this.velocity.add(gravity.scale(dt)).sub(this.velocity.unit().scale(FRICTION * dt)).sub(this.velocity.scale(this.velocity.abs * DRAG * dt));
-        if (this.velocity.abs > SAFE_VELOCITY)
+        if(this.position.x < 1.52 && this.launched)
+            this.velocity = this.velocity.add(new Vector(CENTER_SEEKING_FORCE, 0).scale(dt));
+        else if(this.position.x > 3.5 && this.launched)
+            this.velocity = this.velocity.sub(new Vector(CENTER_SEEKING_FORCE, 0).scale(dt));
+
+        if(this.velocity.abs > SAFE_VELOCITY)
             this.velocity = this.velocity.unit().scale(SAFE_VELOCITY);
+
         this.position = this.position.add(this.velocity.scale(dt));
 
-        if (this.position.y < -2 * BALL_RADIUS && lives >= 1) {
-            this.position = new Vector(BALL_START_X, BALL_START_Y);
-            this.velocity = Vector.NULL;
-            this.launched = false;
-            lives--;
+        if(this.position.y < -2 * BALL_RADIUS) {
+            if(lives > 1) {
+                this.position = new Vector(BALL_START_X, BALL_START_Y);
+                this.launched = false;
+                lives--;
+            }
+                this.velocity = Vector.NULL;
         }
     }
 
@@ -462,10 +471,10 @@ class Ball {
     /**
      * Launches the ball.
      */
-    launch() {
-        if (this.launched)
+    launch(force) {
+        if(this.launched)
             return;
-        this.velocity = new Vector(0, BALL_LAUNCH_SPEED);
+        this.velocity = new Vector(0, force * BALL_LAUNCH_SPEED);
         this.launched = true;
     }
 }

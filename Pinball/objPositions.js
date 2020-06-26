@@ -26,6 +26,10 @@ function getRightFlipperLocalMatrix(angle) {
     return utils.MakeWorld(-1.307, 8.4032, -5.6357, -degrees, -3.24, -5.64, 1);
 }
 
+function getPullerLocalMatrix(run) {
+    return utils.MakeWorld(-2.5264, 8.3925, -7.1 - run, 0, -90, 0, 1);
+}
+
 var ballLocalMatrix         = utils.MakeWorld( 0,         0,        0,           0,        0,       0,     1); // #0
 var bodyLocalMatrix         = utils.MakeWorld( 0,         0,        0,           0,        0,       0,     1);
 var bumper1LocalMatrix      = utils.MakeWorld( 1.1819,    9.1362,   0.020626,   -6.51,     0,       0,     1);

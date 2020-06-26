@@ -15,10 +15,16 @@ new Wall(new Vector(3.5, SHELVES_HEIGHT), new Vector(3.5, 0));
 var leftFlipper = new Flipper(new Vector(1.52, 1.2), true);
 var rightFlipper = new Flipper(new Vector(3.5, 1.2), false);
 
+const PULLER_RUN_MAX = .71;
+const PULLER_SPEED_CHARGE = 1.03;
+const PULLER_SPEED_DISCHARGE = -4.3;
+var pullerRun = 0;
+var pulling = false;
+
 var dt = 1 / FRAMERATE / SUBSTEPS;
 
 function physicsMain() {
-    for (let i = 0; i < SUBSTEPS; i++) {
+    for (let i = 0; i < SUBSTEPS; i ++) {
         ball.update(gravity, dt);
         for (let wall of Wall.list)
             ball.checkCollisionWithWall(wall);
@@ -31,4 +37,8 @@ function physicsMain() {
             ball.checkCollisionWithFlipper(flipper);
         }
     }
+    if(pulling)
+        pullerRun = Math.min(PULLER_RUN_MAX, pullerRun + PULLER_SPEED_CHARGE / FRAMERATE);
+    else
+        pullerRun = Math.max(0, pullerRun + PULLER_SPEED_DISCHARGE / FRAMERATE);
 }
