@@ -8,7 +8,6 @@ out vec2 fsUV;
 out vec3 fsNormal;
 
 uniform mat4 matrix; 
-uniform mat4 nMatrix;     //matrix to transform normals
 
 void main() {
   fsUV = in_uv;

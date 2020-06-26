@@ -131,32 +131,42 @@ function main() {
 
   // define directional light
   var dirLightAlpha = utils.degToRad(-60);
-  var dirLightBeta = utils.degToRad(90);
+  var dirLightBeta = utils.degToRad(50);
 
-  var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-  Math.sin(dirLightAlpha),
-  Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+  var directionalLightA = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+              Math.sin(dirLightAlpha),
+              Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
   ];
-  var directionalLightColor = [1.0, 1.0, 1.0];
+  var directionalLightColorA = [0.85, 0.35, 0.35];
+    
+  var directionalLightB = [-Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+              Math.sin(dirLightAlpha),
+              Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+  ];
+  var directionalLightColorB = [0.35, 0.35, 0.85];    
+    
+    
 
   // define material color 
   var materialColor = [1.0, 1.0, 1.0];
 
   // define ambient light color and material
   var ambientLight = [0.55, 0.1, 0.8];
-  var ambientMat = [0.4, 0.2, 0.6];
+  var ambientMat = [0.4, 0.2, 0.6];  
 
-  var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
+  var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");    
   var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
   var uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
   var textLocation = gl.getUniformLocation(program, "in_texture");
-  var matrixLocation = gl.getUniformLocation(program, "matrix");
+  var matrixLocation = gl.getUniformLocation(program, "matrix");    
   var ambientLightColorHandle = gl.getUniformLocation(program, "ambientLightCol");
   var ambientMaterialHandle = gl.getUniformLocation(program, "ambientMat");
-  var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-  var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-  var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-  var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
+  var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');   
+  var lightDirectionHandleA = gl.getUniformLocation(program, 'lightDirectionA');
+  var lightColorHandleA = gl.getUniformLocation(program, 'lightColorA');
+  var lightDirectionHandleB = gl.getUniformLocation(program, 'lightDirectionB');
+  var lightColorHandleB = gl.getUniformLocation(program, 'lightColorB');    
+      
 
   var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
   var vaos = new Array(allMeshes.length);
@@ -254,15 +264,18 @@ function main() {
       var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
       var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(allLocalMatrices[i]));
-      var lightDirectionTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+      var lightDirectionTransformedA = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLightA));
+      var lightDirectionTransformedB = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLightB));    
 
-      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
+      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));   
+        
       gl.uniform3fv(materialDiffColorHandle, materialColor);
-      gl.uniform3fv(lightColorHandle, directionalLightColor);
-      gl.uniform3fv(lightDirectionHandle, lightDirectionTransformed);
+      gl.uniform3fv(lightColorHandleA, directionalLightColorA);
+      gl.uniform3fv(lightDirectionHandleA, lightDirectionTransformedA);
+      gl.uniform3fv(lightColorHandleB, directionalLightColorB);
+      gl.uniform3fv(lightDirectionHandleB, lightDirectionTransformedB);    
       gl.uniform3fv(ambientLightColorHandle, ambientLight);
-      gl.uniform3fv(ambientMaterialHandle, ambientMat);
+      gl.uniform3fv(ambientMaterialHandle, ambientMat);   
 
       gl.bindVertexArray(vaos[i]);
       gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
