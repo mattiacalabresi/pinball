@@ -230,7 +230,7 @@ function main() {
         addMeshToScene(i + 11);
       }
     }
-  }
+  }  
 
   function drawScene() {
 
@@ -248,8 +248,8 @@ function main() {
     physicsMain();
 
     // clear scene
-    gl.clearColor(0.0, 0.1, 0.25, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
 
     // compose view and light
     var viewMatrix = utils.MakeView(viewX, viewY, viewZ, viewPhi, viewTheta);
