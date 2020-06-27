@@ -389,8 +389,10 @@ class Ball {
                 this.position = new Vector(BALL_START_X, BALL_START_Y);
                 this.launched = false;
                 lives--;
-            }
-                this.velocity = Vector.NULL;
+                updateBallCounter(lives, false);
+            } else if(lives == 1)
+                updateBallCounter(0, true);
+            this.velocity = Vector.NULL;
         }
     }
 
