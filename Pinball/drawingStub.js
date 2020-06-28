@@ -156,19 +156,27 @@ function main() {
   // define ambient light color and material
   var ambientLight = [0.55, 0.1, 0.8];
   var ambientMat = [0.4, 0.2, 0.6];
+    
+  //define specular component of color
+  var specularColor = [1.0, 1.0, 1.0];
+  var specShine = 2.0;
 
   var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
   var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
   var uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
   var textLocation = gl.getUniformLocation(program, "in_texture");
   var matrixLocation = gl.getUniformLocation(program, "matrix");
+  var eyePositionHandle = gl.getUniformLocation(program, "eyePos");    
   var ambientLightColorHandle = gl.getUniformLocation(program, "ambientLightCol");
   var ambientMaterialHandle = gl.getUniformLocation(program, "ambientMat");
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
+  var specularColorHandle = gl.getUniformLocation(program, "specularColor");
+  var shineSpecularHandle = gl.getUniformLocation(program, "specShine");    
   var lightDirectionHandleA = gl.getUniformLocation(program, 'lightDirectionA');
   var lightColorHandleA = gl.getUniformLocation(program, 'lightColorA');
   var lightDirectionHandleB = gl.getUniformLocation(program, 'lightDirectionB');
   var lightColorHandleB = gl.getUniformLocation(program, 'lightColorB');
+
 
   var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width / gl.canvas.height, 0.1, 100.0);
   var vaos = new Array(allMeshes.length);
@@ -269,8 +277,12 @@ function main() {
       var lightDirectionTransformedA = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLightA));
       var lightDirectionTransformedB = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLightB));
 
-      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+      var eyePositionMatrix = utils.invertMatrix(allLocalMatrices[i]);
+      var eyePositionTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(eyePositionMatrix, [viewX, viewY, viewZ]));    
 
+      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+      
+      gl.uniform3fv(eyePositionHandle, eyePositionTransformed);    
       gl.uniform3fv(materialDiffColorHandle, materialColor);
       gl.uniform3fv(lightColorHandleA, directionalLightColorA);
       gl.uniform3fv(lightDirectionHandleA, lightDirectionTransformedA);
@@ -278,6 +290,8 @@ function main() {
       gl.uniform3fv(lightDirectionHandleB, lightDirectionTransformedB);
       gl.uniform3fv(ambientLightColorHandle, ambientLight);
       gl.uniform3fv(ambientMaterialHandle, ambientMat);
+      gl.uniform3fv(specularColorHandle, specularColor);
+      gl.uniform1f(shineSpecularHandle, specShine);
 
       gl.bindVertexArray(vaos[i]);
       gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
