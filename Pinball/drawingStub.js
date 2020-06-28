@@ -301,6 +301,10 @@ function main() {
           gl.uniform3fv(emissionColorHandle, emission);
       else
           gl.uniform3fv(emissionColorHandle, [0.0, 0.0, 0.0]);
+      
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.uniform1i(textLocation, 0);
 
       gl.bindVertexArray(vaos[i]);
       gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
