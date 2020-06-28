@@ -289,7 +289,42 @@ function main() {
   drawScene();
 }
 
+
+// Global references to sounds
+var soundBumper1;
+var soundBumper2;
+var soundBumper3;
+var soundFlipperDown;
+var soundFlipperUp;
+var soundLaunch;
+var soundPuller;
+var soundReload;
+var soundWall1;
+var soundWall2;
+var soundWall3;
+
+/**
+ * 
+ * @param {HTMLAudioElement} sound 
+ */
+function playSound(sound) {
+  sound.currentTime = 0;
+  sound.play();
+}
+
 async function init() {
+  soundBumper1 = document.getElementById("sound_bumper1");
+  soundBumper2 = document.getElementById("sound_bumper2");
+  soundBumper3 = document.getElementById("sound_bumper3");
+  soundFlipperDown = document.getElementById("sound_flipper_down");
+  soundFlipperUp = document.getElementById("sound_flipper_up");
+  soundLaunch = document.getElementById("sound_launch");
+  soundPuller = document.getElementById("sound_puller");
+  soundReload = document.getElementById("sound_reload");
+  soundWall1 = document.getElementById("sound_wall1");
+  soundWall2 = document.getElementById("sound_wall2");
+  soundWall3 = document.getElementById("sound_wall3");
+
   setupCanvas();
   loadShaders();
   await loadMeshes();

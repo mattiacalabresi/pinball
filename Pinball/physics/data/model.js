@@ -390,6 +390,7 @@ class Ball {
                 this.launched = false;
                 lives--;
                 updateBallCounter(lives, false);
+                playSound(soundReload);
             } else if(lives == 1)
                 updateBallCounter(0, true);
             this.velocity = Vector.NULL;
@@ -406,7 +407,15 @@ class Ball {
         wallAbscissa = Math.max(0, Math.min(wallAbscissa, wall.length)); // clamp wallAbscissa in [0, length]
         let impactPoint = wall.direction.scale(wallAbscissa).add(wall.start);
 
-        this.handleCollision(impactPoint, Vector.NULL, WALL_RESTITUTION, 0);
+        let hit = this.handleCollision(impactPoint, Vector.NULL, WALL_RESTITUTION, 0);
+
+        if(hit) {
+            if(this.velocity.abs < 1 || this.position.y < 1.4 && Math.abs(this.velocity.y) < 1)
+                return;
+            let i = Math.floor(3 * Math.random());
+            let sound = [soundWall1, soundWall2, soundWall3][i];
+            playSound(sound);
+        }
     }
 
     /**
@@ -419,8 +428,12 @@ class Ball {
         let impactPoint = bumperCenterToImpactPoint.add(bumper.position);
 
         let hit = this.handleCollision(impactPoint, Vector.NULL, BUMPER_RESTITUTION, 0);
-        if (hit)
+        if(hit) {
             score += Date.now() % 61;
+            let i = Math.floor(3 * Math.random());
+            let sound = [soundBumper1, soundBumper2, soundBumper3][i];
+            playSound(sound);
+        }
     }
 
     /**
@@ -434,7 +447,15 @@ class Ball {
         let impactPoint = flipper.direction.scale(flipperAbscissa).add(flipper.position);
         let impactPointVelocity = flipper.direction.normal().scale(flipperAbscissa * flipper.pulse); // apply rivals theorem: new basis rotating with flipper
 
-        this.handleCollision(impactPoint, impactPointVelocity, FLIPPER_RESTITUTION, FLIPPER_ENERGY_TRANSFER_EFFICIENCY);
+        let hit = this.handleCollision(impactPoint, impactPointVelocity, FLIPPER_RESTITUTION, FLIPPER_ENERGY_TRANSFER_EFFICIENCY);
+
+        if(hit) {
+            if(this.velocity.abs < 1 || this.position.y < 1.4 && Math.abs(this.velocity.y) < 1)
+                return;
+            let i = Math.floor(3 * Math.random());
+            let sound = [soundWall1, soundWall2, soundWall3][i];
+            playSound(sound);
+        }
     }
 
     /**
@@ -478,5 +499,6 @@ class Ball {
             return;
         this.velocity = new Vector(0, force * BALL_LAUNCH_SPEED);
         this.launched = true;
+        playSound(soundLaunch);
     }
 }
