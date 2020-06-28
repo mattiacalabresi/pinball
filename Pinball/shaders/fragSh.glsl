@@ -11,6 +11,7 @@ uniform vec3 eyePos;
 uniform vec3 specularColor;
 uniform float specShine;
 uniform vec3 mDiffColor;
+uniform vec3 emit;
 uniform vec3 lightDirectionA; 
 uniform vec3 lightColorA;
 uniform vec3 lightDirectionB; 
@@ -45,8 +46,8 @@ void main() {
   vec3 blinnSpecular = specularColor * (specularA + specularB); */
   
   //computing BRDF color
-  //vec3 color = clamp(blinnSpecular + lambertColor + ambient, 0.0, 1.0);
-  vec3 color = clamp(lambertColor + ambient, 0.0, 1.0);
+  //vec3 color = clamp(blinnSpecular + lambertColor + ambient + emit, 0.0, 1.0);
+  vec3 color = clamp(lambertColor + ambient + emit, 0.0, 1.0);
   
   //compose final color with texture
   outColor = vec4(texelCol.rgb * color, texelCol.a);

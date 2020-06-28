@@ -160,6 +160,9 @@ function main() {
   //define specular component of color
   var specularColor = [1.0, 1.0, 1.0];
   var specShine = 2.0;
+    
+  //define emission color for digital score
+  var emission = [1.0, 0.0, 0.0];    
 
   var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
   var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
@@ -171,7 +174,8 @@ function main() {
   var ambientMaterialHandle = gl.getUniformLocation(program, "ambientMat");
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
   var specularColorHandle = gl.getUniformLocation(program, "specularColor");
-  var shineSpecularHandle = gl.getUniformLocation(program, "specShine");    
+  var shineSpecularHandle = gl.getUniformLocation(program, "specShine");
+  var emissionColorHandle = gl.getUniformLocation(program, "emit");    
   var lightDirectionHandleA = gl.getUniformLocation(program, 'lightDirectionA');
   var lightColorHandleA = gl.getUniformLocation(program, 'lightColorA');
   var lightDirectionHandleB = gl.getUniformLocation(program, 'lightDirectionB');
@@ -292,6 +296,11 @@ function main() {
       gl.uniform3fv(ambientMaterialHandle, ambientMat);
       gl.uniform3fv(specularColorHandle, specularColor);
       gl.uniform1f(shineSpecularHandle, specShine);
+        
+      if (i >= 5 && i <=16)   
+          gl.uniform3fv(emissionColorHandle, emission);
+      else
+          gl.uniform3fv(emissionColorHandle, [0.0, 0.0, 0.0]);
 
       gl.bindVertexArray(vaos[i]);
       gl.drawElements(gl.TRIANGLES, allMeshes[i].indices.length, gl.UNSIGNED_SHORT, 0);
