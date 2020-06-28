@@ -25,7 +25,7 @@
   </canvas>
 
   <div
-    style="font-family: Arcade; position: absolute; z-index: 1; right: 40px; bottom: 40px; background-color: black; border-width: 20px; border-style: ridge; border-color: white; opacity: 1.0; padding: 5px 10px 5px 10px; overflow:auto">
+    style="font-family: Arcade; position: absolute; z-index: 1; right: 40px; bottom: 40px; background-color: black; border-width: 20px; border-style: ridge; border-color: rgb(177, 74, 175); opacity: 1.0; padding: 5px 10px 5px 10px; overflow:auto">
     <p style="font-size: 45px; color: yellow; text-align: center;">Pinball!</p>
 
     <H2 style="color: white; font-size: 22px;">Game Controls</H2>
@@ -38,7 +38,7 @@
   </div>
 
   <div
-    style="font-family: Arcade; position: absolute; z-index: 1; left: 40px; top: 40px; background-color: black; border-width: 10px; border-style: ridge; border-color: white; opacity: 1.0; padding: 5px 10px 5px 10px; overflow:auto">
+    style="font-family: Arcade; position: absolute; z-index: 1; left: 40px; top: 40px; background-color: black; border-width: 10px; border-style: ridge; border-color: rgb(177, 74, 175); opacity: 1.0; padding: 5px 10px 5px 10px; overflow:auto">
     <p id="ballCounter" style="color: yellow"></p>
   </div>
 
@@ -46,9 +46,17 @@
     style="position: absolute; z-index: 1; width: 100%; height: 100%; top: 0px; bottom: 0px; background-color: black; opacity: 0.0;">
   </div>
   <div id="gameOverMsg"
-    style="font-family: Arcade; position: absolute; z-index: 2; width: 20%; height: 12%; margin: -6% 0 0 -10%; left: 50%; top: 50%; background-color: black; border-width: 10px; border-style: ridge; border-color: white; opacity: 0.0; padding: 5px 10px 5px 10px; overflow:auto">
+    style="font-family: Arcade; position: absolute; z-index: 2; width: 20%; height: 12%; margin: -6% 0 0 -10%; left: 50%; top: 50%; background-color: black; border-width: 20px; border-style: ridge; border-color: rgb(177, 74, 175); opacity: 0.0; padding: 5px 10px 5px 10px; overflow:auto">
     <H2 style="color: red; font-size: 22px; text-align: center;">Game Over!</H2>
     <p style="color: lightgray; text-align: center">Press F5 to start</p>
+  </div>
+
+  <div id="loadingBg"
+    style="position: absolute; z-index: 1; width: 100%; height: 100%; top: 0px; bottom: 0px; background-color: black; opacity: 1.0;">
+  </div>
+  <div id="loadingMsg"
+    style="font-family: Arcade; position: absolute; z-index: 2; width: 20%; height: 12%; margin: -6% 0 0 -10%; left: 50%; top: 50%; background-color: black; border-color: rgb(177, 74, 175); opacity: 1.0; padding: 5px 10px 5px 10px; overflow:auto">
+    <H2 style="color: Yellow; font-size: 22px; text-align: center;">Loading...</H2>
   </div>
 
   <audio id="sound_bumper1" type="audio/wav" src="sounds/bumper1.wav"></audio>

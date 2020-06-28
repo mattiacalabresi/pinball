@@ -117,6 +117,8 @@ var actualScore = 0;
 var ballCounter;
 var gameOverBg;
 var gameOverMsg;
+var loadingBg;
+var loadingMsg;
 
 const numUVs = [[0.735309, 0.956854, 0.760579, 0.918019, 0.760579, 0.956854, 0.735309, 0.918019],
                 [0.636297, 0.996017, 0.661567, 0.957183, 0.661567, 0.996017, 0.636297, 0.957183],
@@ -230,6 +232,10 @@ function main() {
 
   for (let i in allMeshes)
     addMeshToScene(i);
+    
+  // loading complete: dismiss loading screen
+  loadingBg.style.opacity = 0.0;
+  loadingMsg.style.opacity = 0.0;
 
   function updateScoreTex() {
     if (actualScore != score) {
@@ -243,7 +249,7 @@ function main() {
       }
     }
   }  
-
+  
   function drawScene() {
 
     // update uv coordinates of dynamic score system  
@@ -301,7 +307,7 @@ function main() {
           gl.uniform3fv(emissionColorHandle, emission);
       else
           gl.uniform3fv(emissionColorHandle, [0.0, 0.0, 0.0]);
-      
+          
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(textLocation, 0);
@@ -312,7 +318,7 @@ function main() {
 
     window.requestAnimationFrame(drawScene);
   }
-
+  
   drawScene();
 }
 
@@ -471,10 +477,13 @@ async function init() {
     cameraControls.appendChild(cc9);
     cameraControls.appendChild(cc10);
 
-    // preload ballsCounter and gameOver elements
+    // preload ballsCounter, gameOver and loading elements
     ballCounter = document.getElementById("ballCounter");
     gameOverBg = document.getElementById("gameOverBg");
     gameOverMsg = document.getElementById("gameOverMsg");
+    loadingBg = document.getElementById("loadingBg");
+    loadingMsg = document.getElementById("loadingMsg");
+    
     updateBallCounter(lives, false);
   }
 }
